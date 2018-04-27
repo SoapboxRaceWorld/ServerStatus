@@ -14,12 +14,13 @@
   );
 
   $retries = 1;
-  $maxretries = 5;
+  $maxretries = 10;
 
   function createQuery($url, $x=0, $y=0) {
-    global $retries, $maxretries;
+    global $retries, $maxretries, $ch, $timeout, $result;
+
     $ch=curl_init();
-    $timeout=20;
+    $timeout=5;
 
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -27,19 +28,14 @@
 
     $result=curl_exec($ch);
 
-    if(curl_error($ch)) {
-      if($retries == $maxretries) {
-        $retries = 1;
-        echo "[".date('Y-m-d H:i:s', time())."] ".curl_error($ch).". Skipping...".PHP_EOL;
-        curl_close($ch);
-        return;
-      } else {
-        echo "[".date('Y-m-d H:i:s', time())."] ".curl_error($ch).". Retrying ".$retries."/".$maxretries.PHP_EOL;
-        $retries++;
-        createQuery($url, $x, $y);
-      }
+    while(curl_error($ch) && $retries < $maxretries){
+      echo "[".date('Y-m-d H:i:s', time())."] ".curl_error($ch).". Retrying ".$retries."/".$maxretries.PHP_EOL;
+      $retries++;
+      sleep('1');
+      $result = curl_exec($ch);
     }
 
+    $retries = 1;
     curl_close($ch);
     return $result;
   }
