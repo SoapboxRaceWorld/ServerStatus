@@ -1,14 +1,15 @@
 #!/usr/bin/php
 <?php
   set_time_limit(0);
-  ini_set('default_socket_timeout', 20);
+  ini_set('default_socket_timeout', 10);
+  error_reporting(E_ALL);
 
   $set_server_status = array();
   $last_server_status = array();
 
   $ctx = stream_context_create(array(
       'http' => array(
-          'timeout' => 20
+          'timeout' => 50
           )
       )
   );
@@ -52,7 +53,7 @@
     while($row = mysqli_fetch_array($db, MYSQLI_ASSOC)) {
       $fetch = @createQuery($row['serverIP']."/GetServerInformation", 0, $ctx);
 
-      if($fetch) {
+      if(json_decode($fetch, true) != NULL) {
         $onlineNumber = json_decode($fetch, true)['onlineNumber'];
         $regNumber = json_decode($fetch, true)['numberOfRegistered'];
 
@@ -127,13 +128,13 @@
       //calculate repeat for spacebar
       $repeattime = 52-(strlen("| Updated ".$row['serverName']))-1;
 
-      echo "[".date('Y-m-d H:i:s', $time)."]"; echo "┌".str_repeat("-", 50)."┐".PHP_EOL;
-      echo "[".date('Y-m-d H:i:s', $time)."]"; echo "| Updated ".$row['serverName'].str_repeat(" ", $repeattime)."|".PHP_EOL;
-      echo "[".date('Y-m-d H:i:s', $time)."]"; echo "├".str_repeat("-", 50)."┤".PHP_EOL;
+      echo "[".date('Y-m-d H:i:s', time())."]"; echo "┌".str_repeat("-", 50)."┐".PHP_EOL;
+      echo "[".date('Y-m-d H:i:s', time())."]"; echo "| Updated ".$row['serverName'].str_repeat(" ", $repeattime)."|".PHP_EOL;
+      echo "[".date('Y-m-d H:i:s', time())."]"; echo "├".str_repeat("-", 50)."┤".PHP_EOL;
       $mask = "| %-36.36s | %9.9s |".PHP_EOL;
-      echo "[".date('Y-m-d H:i:s', $time)."]"; printf($mask, 'OnlineUsers', $onlineNumber);
-      echo "[".date('Y-m-d H:i:s', $time)."]"; printf($mask, 'Registered Users', $regNumber);
-      echo "[".date('Y-m-d H:i:s', $time)."]"; echo "└".str_repeat("-", 50)."┘".PHP_EOL;
+      echo "[".date('Y-m-d H:i:s', time())."]"; printf($mask, 'OnlineUsers', $onlineNumber);
+      echo "[".date('Y-m-d H:i:s', time())."]"; printf($mask, 'Registered Users', $regNumber);
+      echo "[".date('Y-m-d H:i:s', time())."]"; echo "└".str_repeat("-", 50)."┘".PHP_EOL;
       /*echo "[".date('Y-m-d H:i:s', $time)."] Updated ".$row['serverName'].PHP_EOL;
       echo "[".date('Y-m-d H:i:s', $time)."] OnlineUsers: ".$onlineNumber.PHP_EOL;
       echo "[".date('Y-m-d H:i:s', $time)."] RegisteredUsers:".$regNumber.PHP_EOL;*/
@@ -141,9 +142,9 @@
 
     $r = 52-(strlen("| ALL SERVERS HAS BEEN UPDATED."))-1;
 
-    echo "[".date('Y-m-d H:i:s', $time)."]"; echo "┌".str_repeat("-", 50)."┐".PHP_EOL;
-    echo "[".date('Y-m-d H:i:s', $time)."]"; echo "| ALL SERVERS HAS BEEN UPDATED.".str_repeat(" ", $r)."|".PHP_EOL;
-    echo "[".date('Y-m-d H:i:s', $time)."]"; echo "└".str_repeat("-", 50)."┘".PHP_EOL;
+    echo "[".date('Y-m-d H:i:s', time())."]"; echo "┌".str_repeat("-", 50)."┐".PHP_EOL;
+    echo "[".date('Y-m-d H:i:s', time())."]"; echo "| ALL SERVERS HAS BEEN UPDATED.".str_repeat(" ", $r)."|".PHP_EOL;
+    echo "[".date('Y-m-d H:i:s', time())."]"; echo "└".str_repeat("-", 50)."┘".PHP_EOL;
 
     mysqli_close($database);
     sleep(60);

